@@ -22,12 +22,19 @@ type MovieDetails = {
   vote_average: number;
 };
 
+type SimilarMovie = {
+  id: number;
+  title: string;
+  poster_path: string;
+};
+
 type RouterProps = {
   movieId: number;
 };
 
 export function Details() {
   const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null);
+  const [similarMovies, setSimilarMovies] = useState<SimilarMovie[]>([]);
   const [loading, setLoading] = useState(false);
   const route = useRoute();
   const { movieId } = route.params as RouterProps;
@@ -44,13 +51,34 @@ export function Details() {
         setLoading(false);
       }
     };
+
+    const fetchSimilarMovies = async () => {
+      try {
+        const response = await api.get(`/movie/${movieId}/similar`);
+        setSimilarMovies(response.data.results);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     fetchMovieDetails();
+    fetchSimilarMovies();
   }, [movieId]);
 
   function getYear(data: string) {
     const ano = new Date(data).getFullYear();
     return ano;
   }
+
+  const renderSimilarMovie = (movie: SimilarMovie) => (
+    <View key={movie.id} style={styles.similarMovie}>
+      <Image
+        source={{ uri: `https://image.tmdb.org/t/p/w200${movie.poster_path}` }}
+        style={styles.similarMovieImage}
+      />
+      <Text style={styles.similarMovieTitle}>{movie.title}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -120,6 +148,12 @@ export function Details() {
               ? "Ops! Parece que esse filme ainda não tem sinopse :-("
               : movieDetails?.overview}
           </Text>
+        </View>
+        <View style={styles.similarMoviesContainer}>
+          <Text style={styles.similarMoviesTitle}>Filmes que você pode gostar</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {similarMovies.map(renderSimilarMovie)}
+          </ScrollView>
         </View>
       </ScrollView>
     </View>
@@ -196,5 +230,28 @@ const styles = StyleSheet.create({
   aboutText: {
     color: "#fff",
     textAlign: "justify",
+  },
+  similarMoviesContainer: {
+    marginTop: 20,
+  },
+  similarMoviesTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  similarMovie: {
+    marginRight: 10,
+  },
+  similarMovieImage: {
+    width: 100,
+    height: 150,
+    borderRadius: 8,
+  },
+  similarMovieTitle: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 5,
   },
 });

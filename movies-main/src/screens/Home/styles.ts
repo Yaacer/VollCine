@@ -15,9 +15,14 @@ export const styles = StyleSheet.create({
     marginVertical: 10,
   },
   flatList: {
+    flex: 1,
     width: width,
     alignItems: "center",
     justifyContent: "center",
+  },
+  flatListContentContainer: {
+    padding: 35,
+    paddingBottom: 100,
   },
   header: {
     padding: 25,
