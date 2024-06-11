@@ -1,6 +1,6 @@
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView, Modal, Platform } from "react-native";
 import { api } from "../../services/api";
 import {
   BookmarkSimple,
@@ -9,6 +9,7 @@ import {
   Clock,
   Star,
 } from "phosphor-react-native";
+import { WebView } from 'react-native-webview';
 
 // Tipagem MovieDetails
 type MovieDetails = {
@@ -28,6 +29,10 @@ type SimilarMovie = {
   poster_path: string;
 };
 
+type Trailer = {
+  key: string;
+};
+
 type RouterProps = {
   movieId: number;
 };
@@ -36,7 +41,10 @@ export function Details() {
   const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null);
   const [similarMovies, setSimilarMovies] = useState<SimilarMovie[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const route = useRoute();
+  const navigation = useNavigation();
   const { movieId } = route.params as RouterProps;
 
   useEffect(() => {
@@ -65,25 +73,38 @@ export function Details() {
     fetchSimilarMovies();
   }, [movieId]);
 
+  const fetchTrailer = async (id: number) => {
+    try {
+      const response = await api.get(`/movie/${id}/videos`);
+      const trailer = response.data.results.find((video: Trailer) => video.type === 'Trailer');
+      setTrailerKey(trailer ? trailer.key : null);
+      setModalVisible(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   function getYear(data: string) {
     const ano = new Date(data).getFullYear();
     return ano;
   }
 
   const renderSimilarMovie = (movie: SimilarMovie) => (
-    <View key={movie.id} style={styles.similarMovie}>
-      <Image
-        source={{ uri: `https://image.tmdb.org/t/p/w200${movie.poster_path}` }}
-        style={styles.similarMovieImage}
-      />
-      <Text style={styles.similarMovieTitle}>{movie.title}</Text>
-    </View>
+    <TouchableOpacity key={movie.id} onPress={() => navigation.navigate('Details', { movieId: movie.id })}>
+      <View style={styles.similarMovie}>
+        <Image
+          source={{ uri: `https://image.tmdb.org/t/p/w200${movie.poster_path}` }}
+          style={styles.similarMovieImage}
+        />
+        <Text style={styles.similarMovieTitle} numberOfLines={1}>{movie.title}</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <CaretLeft color="#fff" size={32} weight="thin" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Detalhes</Text>
@@ -99,12 +120,14 @@ export function Details() {
             }}
             style={styles.detailsImage}
           />
-          <Image
-            source={{
-              uri: `https://image.tmdb.org/t/p/w500${movieDetails?.poster_path}`,
-            }}
-            style={styles.detailsPosterImage}
-          />
+          <TouchableOpacity onPress={() => fetchTrailer(movieDetails?.id)}>
+            <Image
+              source={{
+                uri: `https://image.tmdb.org/t/p/w500${movieDetails?.poster_path}`,
+              }}
+              style={styles.detailsPosterImage}
+            />
+          </TouchableOpacity>
           <Text style={styles.titleMovie}>{movieDetails?.title}</Text>
           <View style={styles.description}>
             <View style={styles.descriptionGroup}>
@@ -126,7 +149,7 @@ export function Details() {
                 }
                 size={25}
                 weight={
-                  movieDetails?.vote_average.toFixed(2) >= "7" ? "duotone": "thin"
+                  movieDetails?.vote_average.toFixed(2) >= "7" ? "duotone" : "thin"
                 }
               />
               <Text
@@ -151,11 +174,44 @@ export function Details() {
         </View>
         <View style={styles.similarMoviesContainer}>
           <Text style={styles.similarMoviesTitle}>Filmes que você pode gostar</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarMoviesScroll}>
             {similarMovies.map(renderSimilarMovie)}
           </ScrollView>
         </View>
       </ScrollView>
+
+      {/* Modal para exibir o trailer */}
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+            <Text style={styles.closeButtonText}>Fechar</Text>
+          </TouchableOpacity>
+          {trailerKey ? (
+            Platform.OS === 'web' ? (
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${trailerKey}`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={styles.webView}
+              />
+            ) : (
+              <WebView
+                source={{ uri: `https://www.youtube.com/embed/${trailerKey}` }}
+                style={styles.webView}
+              />
+            )
+          ) : (
+            <Text style={styles.noTrailerText}>Trailer não disponível</Text>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -190,7 +246,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     position: "absolute",
     left: 29,
-    top: 140,
+    top: 70,
   },
   titleMovie: {
     position: "absolute",
@@ -201,7 +257,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   description: {
-    marginTop: 170,
+    marginTop: 190,
     flexDirection: "row",
     justifyContent: "center",
   },
@@ -240,8 +296,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 10,
   },
+  similarMoviesScroll: {
+    paddingLeft: 10,
+  },
   similarMovie: {
     marginRight: 10,
+    alignItems: 'center',
+    width: 100,
   },
   similarMovieImage: {
     width: 100,
@@ -253,5 +314,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     marginTop: 5,
+    width: '100%', // Ensure the text stays within the bounds of the container
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "#000",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    zIndex: 1,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 18,
+  },
+  webView: {
+    width: '100%',
+    height: '80%',
+  },
+  noTrailerText: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
   },
 });

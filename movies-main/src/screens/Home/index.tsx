@@ -36,9 +36,12 @@ export function Home() {
 
   const loadMoreData = async () => {
     setLoading(true);
-    const response = await api.get("/movie/popular", {
+    const response = await api.get("/discover/movie", {
       params: {
         page,
+        'primary_release_date.gte': '2020-01-01', // Filmes a partir de 2020
+        'sort_by': 'popularity.desc', // Ordenar por popularidade
+        'vote_average.gte': 7, // Apenas filmes com classificação média de 7 ou superior
       },
     });
     setDiscoveryMovies([...discoveryMovies, ...response.data.results]);
@@ -51,6 +54,9 @@ export function Home() {
     const response = await api.get("/search/movie", {
       params: {
         query,
+        'primary_release_date.gte': '2020-01-01', // Filmes a partir de 2020
+        'sort_by': 'popularity.desc', // Ordenar por popularidade
+        'vote_average.gte': 7, // Apenas filmes com classificação média de 7 ou superior
       },
     });
 
@@ -74,7 +80,6 @@ export function Home() {
     }
   };
 
-  //criar função de renderMovieItem
   const navigation = useNavigation();
 
   const renderMovieItem = ({ item }: { item: Movie }) => (
@@ -89,7 +94,7 @@ export function Home() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Oque você quer assistir hoje?</Text>
+        <Text style={styles.headerText}>O que você quer assistir hoje?</Text>
 
         <View style={styles.containerInput}>
           <TextInput
@@ -99,7 +104,7 @@ export function Home() {
             value={search}
             onChangeText={handleSearch}
           />
-          <MagnifyingGlass color="#FFf" size={25} weight="light" />
+          <MagnifyingGlass color="#FFF" size={25} weight="light" />
         </View>
 
         {noResult && (
