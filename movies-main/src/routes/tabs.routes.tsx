@@ -1,10 +1,11 @@
+import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { BookmarkSimple, House, MagnifyingGlass } from "phosphor-react-native";
-import { Details } from "../screens/Details";
-
+import { BookmarkSimple, Hourglass, House, MagnifyingGlass, User } from "phosphor-react-native";
 import { Home } from "../screens/Home";
-import { Search } from "../screens/Search";
 import { MyList } from "../screens/MyList";
+import Perfil from "../screens/Perfil";
+import Principal from "../screens/Principal";
+import { Details } from "../screens/Details";
 
 const { Navigator, Screen } = createBottomTabNavigator();
 
@@ -25,30 +26,38 @@ export function TabRoutes() {
       }}
     >
       <Screen
-        name="Home"
-        component={Home}
+        name='Principal'
+        component={Principal}
         options={{
-          tabBarIcon: ({ color }) => (
-            <MagnifyingGlass color={color} size={30} weight="light" />
-          ),
+          tabBarIcon: ({ color }) => <House color={color} size={30} weight="light" />,
         }}
       />
-
+      <Screen
+        name='MainHome'
+        component={Home}
+        options={{
+          tabBarIcon: ({ color }) => <MagnifyingGlass color={color} size={30} weight="light" />,
+        }}
+      />
+      <Screen
+        name="MyList"
+        component={MyList}
+        options={{
+          tabBarIcon: ({ color }) => <BookmarkSimple color={color} size={30} weight="light" />,
+        }}
+      />
+      <Screen
+        name="Perfil"
+        component={Perfil}
+        options={{
+          tabBarIcon: ({ color }) => <User color={color} size={30} weight="light" />,
+        }}
+      />
       <Screen
         name="Details"
         component={Details}
         options={{
           tabBarButton: () => null,
-        }}
-      />
-
-      <Screen
-        name="MyList"
-        component={MyList}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <BookmarkSimple color={color} size={30} weight="light" />
-          ),
         }}
       />
     </Navigator>

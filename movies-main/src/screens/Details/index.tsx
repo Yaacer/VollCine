@@ -1,6 +1,6 @@
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView, Modal, Platform } from "react-native";
+import { useEffect, useState, useContext } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView, Modal, Platform, LogBox } from "react-native";
 import { api } from "../../services/api";
 import {
   BookmarkSimple,
@@ -10,6 +10,7 @@ import {
   Star,
 } from "phosphor-react-native";
 import { WebView } from 'react-native-webview';
+import { MovieContext } from '../../contexts/MoviesContext';
 
 // Tipagem MovieDetails
 type MovieDetails = {
@@ -37,15 +38,17 @@ type RouterProps = {
   movieId: number;
 };
 
-export function Details() {
+export function Details({ navigation }) {
+  const { addFavoriteMovies, removeFavoriteMovies, favoriteMovies } = useContext(MovieContext);
   const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null);
   const [similarMovies, setSimilarMovies] = useState<SimilarMovie[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const route = useRoute();
-  const navigation = useNavigation();
   const { movieId } = route.params as RouterProps;
+
+  const isFavorite = favoriteMovies.includes(movieId);
 
   useEffect(() => {
     const fetchMovieDetails = async () => {
@@ -63,7 +66,9 @@ export function Details() {
     const fetchSimilarMovies = async () => {
       try {
         const response = await api.get(`/movie/${movieId}/similar`);
-        setSimilarMovies(response.data.results);
+        // Ordena os filmes similares por data de lançamento de forma decrescente
+        const sortedSimilarMovies = response.data.results.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+        setSimilarMovies(sortedSimilarMovies);
       } catch (error) {
         console.log(error);
       }
@@ -101,15 +106,23 @@ export function Details() {
     </TouchableOpacity>
   );
 
+  const handleFavoriteToggle = () => {
+    if (isFavorite) {
+      removeFavoriteMovies(movieId);
+    } else {
+      addFavoriteMovies(movieId);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('MainHome')}>
           <CaretLeft color="#fff" size={32} weight="thin" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Detalhes</Text>
-        <TouchableOpacity>
-          <BookmarkSimple color="#fff" size={32} weight="thin" />
+        <TouchableOpacity onPress={handleFavoriteToggle}>
+          <BookmarkSimple color={isFavorite ? "#FF8700" : "#fff"} size={32} weight="thin" />
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -246,7 +259,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     position: "absolute",
     left: 29,
-    top: 70,
+    top: 20,
   },
   titleMovie: {
     position: "absolute",
