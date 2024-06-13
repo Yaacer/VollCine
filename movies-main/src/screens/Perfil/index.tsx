@@ -74,7 +74,7 @@ const ProfileScreen = ({ navigation }) => {
                 type: 'error',
                 text1: 'Erro',
                 text2: 'Nenhuma mensagem foi enviada',
-                style: { zIndex: 1000 }, // Garante que o Toast tenha um zIndex alto
+                style: { zIndex: 1000 }, 
             });
         } else {
             console.log('Assunto:', contactSubject);
