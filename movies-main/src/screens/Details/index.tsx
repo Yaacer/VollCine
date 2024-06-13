@@ -1,15 +1,9 @@
+import React, { useEffect, useState, useContext } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView, Modal, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { useEffect, useState, useContext } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView, Modal, Platform, LogBox } from "react-native";
-import { api } from "../../services/api";
-import {
-  BookmarkSimple,
-  CalendarBlank,
-  CaretLeft,
-  Clock,
-  Star,
-} from "phosphor-react-native";
+import { BookmarkSimple, CalendarBlank, CaretLeft, Clock, Star } from "phosphor-react-native";
 import { WebView } from 'react-native-webview';
+import { api } from "../../services/api";
 import { MovieContext } from '../../contexts/MoviesContext';
 
 // Tipagem MovieDetails
@@ -19,23 +13,39 @@ type MovieDetails = {
   overview: string;
   poster_path: string;
   backdrop_path: string;
-  runtime: string;
+  runtime: number;
   release_date: string;
   vote_average: number;
+  credits: {
+    cast: {
+      id: number;
+      name: string;
+      profile_path: string;
+      character: string;
+    }[];
+  };
+  genres: Genre[]; // Adicionando os gêneros
 };
 
 type SimilarMovie = {
   id: number;
   title: string;
   poster_path: string;
+  release_date: string;
 };
 
 type Trailer = {
   key: string;
+  type: string;
 };
 
 type RouterProps = {
   movieId: number;
+};
+
+type Genre = {
+  id: number;
+  name: string;
 };
 
 export function Details({ navigation }) {
@@ -54,7 +64,9 @@ export function Details({ navigation }) {
     const fetchMovieDetails = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/movie/${movieId}`);
+        const response = await api.get(`/movie/${movieId}`, {
+          params: { append_to_response: 'credits' }
+        });
         setMovieDetails(response.data);
         setLoading(false);
       } catch (error) {
@@ -67,7 +79,7 @@ export function Details({ navigation }) {
       try {
         const response = await api.get(`/movie/${movieId}/similar`);
         // Ordena os filmes similares por data de lançamento de forma decrescente
-        const sortedSimilarMovies = response.data.results.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+        const sortedSimilarMovies = response.data.results.sort((a, b) => Date.parse(b.release_date) - Date.parse(a.release_date));
         setSimilarMovies(sortedSimilarMovies);
       } catch (error) {
         console.log(error);
@@ -89,9 +101,23 @@ export function Details({ navigation }) {
     }
   };
 
+  const fetchMovieDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/movie/${movieId}`, {
+        params: { append_to_response: 'credits,genres' } // Adicionando 'genres' aos parâmetros
+      });
+      setMovieDetails(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+
   function getYear(data: string) {
-    const ano = new Date(data).getFullYear();
-    return ano;
+    const year = new Date(data).getFullYear();
+    return year;
   }
 
   const renderSimilarMovie = (movie: SimilarMovie) => (
@@ -114,10 +140,27 @@ export function Details({ navigation }) {
     }
   };
 
+  const renderCast = () => (
+    movieDetails?.credits.cast.slice(0, 4).map(actor => (
+      <TouchableOpacity key={actor.id} onPress={() => navigation.navigate('ActorDetails', { actorId: actor.id })}>
+        <View style={styles.actorContainer}>
+          <Image
+            source={{ uri: `https://image.tmdb.org/t/p/w200${actor.profile_path}` }}
+            style={styles.actorImage}
+          />
+          <View style={styles.actorTextContainer}>
+            <Text style={styles.actorName}>{actor.name}</Text>
+            <Text style={styles.actorCharacter}>{actor.character}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    ))
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('MainHome')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Search')}>
           <CaretLeft color="#fff" size={32} weight="thin" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Detalhes</Text>
@@ -151,26 +194,16 @@ export function Details({ navigation }) {
             </View>
             <View style={styles.descriptionGroup}>
               <Clock color="#92929D" size={25} weight="thin" />
-              <Text
-                style={styles.descriptionText}
-              >{`${movieDetails?.runtime} minutos`}</Text>
+              <Text style={styles.descriptionText}>{`${movieDetails?.runtime} minutos`}</Text>
             </View>
             <View style={styles.descriptionGroup}>
               <Star
-                color={
-                  movieDetails?.vote_average.toFixed(2) >= "7" ? "#FF8700" : "#92929D"
-                }
+                color={movieDetails?.vote_average >= 7 ? "#FF8700" : "#92929D"}
                 size={25}
-                weight={
-                  movieDetails?.vote_average.toFixed(2) >= "7" ? "duotone" : "thin"
-                }
+                weight={movieDetails?.vote_average >= 7 ? "duotone" : "thin"}
               />
               <Text
-                style={[
-                  movieDetails?.vote_average.toFixed(2) >= "7"
-                    ? styles.descriptionText1
-                    : styles.descriptionText,
-                ]}
+                style={movieDetails?.vote_average >= 7 ? styles.descriptionText1 : styles.descriptionText}
               >
                 {movieDetails?.vote_average.toFixed(1)}
               </Text>
@@ -184,6 +217,16 @@ export function Details({ navigation }) {
               ? "Ops! Parece que esse filme ainda não tem sinopse :-("
               : movieDetails?.overview}
           </Text>
+          <Text style={styles.aboutTextTitle}>Gêneros</Text>
+          <View style={styles.genresContainer}>
+            {movieDetails?.genres.map(genre => (
+              <Text key={genre.id} style={styles.genre}>{genre.name}</Text>
+            ))}
+          </View>
+        </View>
+        <View style={styles.castContainer}>
+          <Text style={styles.castTitle}>Elenco Principal</Text>
+          {renderCast()}
         </View>
         <View style={styles.similarMoviesContainer}>
           <Text style={styles.similarMoviesTitle}>Filmes que você pode gostar</Text>
@@ -295,10 +338,41 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 10,
+    marginTop: 10,
   },
   aboutText: {
     color: "#fff",
     textAlign: "justify",
+  },
+  castContainer: {
+    padding: 20,
+  },
+  castTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  actorContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  actorImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  actorTextContainer: {
+    marginLeft: 10,
+  },
+  actorName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  actorCharacter: {
+    color: '#92929D',
   },
   similarMoviesContainer: {
     marginTop: 20,
@@ -352,5 +426,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     textAlign: "center",
+  },
+  genresContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+  },
+  genre: {
+    color: '#fff',
+    backgroundColor: '#C3130F',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginRight: 10,
+    marginBottom: 5,
+    borderRadius: 5,
   },
 });

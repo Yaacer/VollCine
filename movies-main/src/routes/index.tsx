@@ -5,6 +5,8 @@ import { TabRoutes } from "./tabs.routes";
 import Login from "../screens/Login/Login";
 import Cadastro from "../screens/Cadastro/Cadastro";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SelecionarPlano from "../components/SelecionarPlano";
+import PagamentoFicticio from "../components/Pagamento";
 
 const Stack = createNativeStackNavigator();
 
@@ -27,26 +29,33 @@ export function Routes() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        {isLoggedIn ? (
+        <Stack.Screen
+          name="Tabs"
+          component={TabRoutes}
+          options={{ headerShown: false }}
+        />
+        <>
           <Stack.Screen
-            name="MainHome"
-            component={TabRoutes}
+            name="Login"
+            component={Login}
             options={{ headerShown: false }}
           />
-        ) : (
-          <>
-            <Stack.Screen
-              name="Login"
-              component={Login}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Cadastro"
-              component={Cadastro}
-              options={{ headerShown: false }}
-            />
-          </>
-        )}
+          <Stack.Screen
+            name="Cadastro"
+            component={Cadastro}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SelecionarPlano"
+            component={SelecionarPlano}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PagamentoFicticio"
+            component={PagamentoFicticio}
+            options={{ headerShown: false }}
+          />
+        </>
       </Stack.Navigator>
     </NavigationContainer>
   );

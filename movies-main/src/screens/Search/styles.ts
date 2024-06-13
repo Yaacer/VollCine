@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: width,
-    backgroundColor: "#242A32",
+    backgroundColor: "#000",
     alignItems: "center",
   },
   noResult: {
@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
     padding: 25,
   },
   headerText: {
-    marginTop: 30,
+    marginTop: 10,
     fontSize: 24,
     lineHeight: 45,
     color: "#FFF",
@@ -47,5 +47,14 @@ export const styles = StyleSheet.create({
     color: "#FFF",
     width: "80%",
     paddingLeft: 15,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  logo: {
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
   },
 });

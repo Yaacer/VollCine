@@ -1,65 +1,73 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { BookmarkSimple, Hourglass, House, MagnifyingGlass, User } from "phosphor-react-native";
-import { Home } from "../screens/Home";
-import { MyList } from "../screens/MyList";
-import Perfil from "../screens/Perfil";
-import Principal from "../screens/Principal";
-import { Details } from "../screens/Details";
+import { BookmarkSimple, House, MagnifyingGlass, User } from "phosphor-react-native";
+import MainHome from "../screens/Home/index";
+import { MyList } from "../screens/MyList/index";
+import Perfil from "../screens/Perfil/index";
+import { Details } from "../screens/Details/index";
+import { Search } from "../screens/Search/index";
+import { ActorDetails } from "../screens/DetalheAtor";
 
-const { Navigator, Screen } = createBottomTabNavigator();
+const Tab = createBottomTabNavigator();
 
 export function TabRoutes() {
   return (
-    <Navigator
+    <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
           backgroundColor: "#242a32",
           height: 78,
           borderTopWidth: 1,
-          borderTopColor: "#0296e5",
+          borderTopColor: "#C3130F",
         },
         headerShown: false,
-        tabBarActiveTintColor: "#0296e5",
-        tabBarInactiveTintColor: "#67686d",
+        tabBarActiveTintColor: "#C3130F",
+        tabBarInactiveTintColor: "#FFF",
         tabBarShowLabel: false,
       }}
     >
-      <Screen
-        name='Principal'
-        component={Principal}
+      <Tab.Screen
+        name='MainHome'
+        component={MainHome}
         options={{
           tabBarIcon: ({ color }) => <House color={color} size={30} weight="light" />,
         }}
       />
-      <Screen
-        name='MainHome'
-        component={Home}
+      <Tab.Screen
+        name='Search'
+        component={Search}
         options={{
           tabBarIcon: ({ color }) => <MagnifyingGlass color={color} size={30} weight="light" />,
         }}
       />
-      <Screen
+      <Tab.Screen
         name="MyList"
         component={MyList}
         options={{
           tabBarIcon: ({ color }) => <BookmarkSimple color={color} size={30} weight="light" />,
         }}
       />
-      <Screen
+      <Tab.Screen
         name="Perfil"
         component={Perfil}
         options={{
           tabBarIcon: ({ color }) => <User color={color} size={30} weight="light" />,
         }}
       />
-      <Screen
+      <Tab.Screen
         name="Details"
         component={Details}
         options={{
           tabBarButton: () => null,
         }}
       />
-    </Navigator>
+      <Tab.Screen
+        name="ActorDetails"
+        component={ActorDetails}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
+    </Tab.Navigator>
   );
 }

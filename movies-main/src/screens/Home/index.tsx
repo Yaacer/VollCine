@@ -1,134 +1,178 @@
-import { MagnifyingGlass } from "phosphor-react-native";
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
+import { api } from '../../services/api';
+import { Logo } from '../../components/Logo';
 
-import { CardMovies } from "../../components/CardMovies";
+const { width } = Dimensions.get('window');
+const ITEM_WIDTH = width * 0.7;
+const SPACING = 10;
 
-import { api } from "../../services/api";
-
-import { styles } from "./styles";
-import { useNavigation } from "@react-navigation/native";
-
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string;
-  overview: string;
-}
-
-export function Home() {
-  const [discoveryMovies, setDiscoveryMovies] = useState<Movie[]>([]);
-  const [searchResultMovies, setSearchResultMovies] = useState<Movie[]>([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [noResult, setNoResult] = useState(false);
-  const [search, setSearch] = useState("");
+const MainHome = ({ navigation }) => {
+  const [trendingMovies, setTrendingMovies] = useState([]);
+  const [upcomingMovies, setUpcomingMovies] = useState([]);
+  const [topRatedMovies, setTopRatedMovies] = useState([]);
+  const scrollX = new Animated.Value(0);
 
   useEffect(() => {
-    loadMoreData();
+    const fetchMovies = async () => {
+      try {
+        const trendingResponse = await api.get('/trending/movie/week');
+        setTrendingMovies(trendingResponse.data.results);
+
+        const upcomingResponse = await api.get('/movie/upcoming');
+        setUpcomingMovies(upcomingResponse.data.results);
+
+        const topRatedResponse = await api.get('/movie/top_rated');
+        setTopRatedMovies(topRatedResponse.data.results);
+      } catch (error) {
+        console.error('Erro ao buscar filmes:', error);
+      }
+    };
+
+    fetchMovies();
   }, []);
 
-  const loadMoreData = async () => {
-    setLoading(true);
-    const response = await api.get("/discover/movie", {
-      params: {
-        page,
-        'primary_release_date.gte': '2020-01-01', // Filmes a partir de 2020
-        'sort_by': 'popularity.desc', // Ordenar por popularidade
-        'vote_average.gte': 7, // Apenas filmes com classificação média de 7 ou superior
-      },
-    });
-    setDiscoveryMovies([...discoveryMovies, ...response.data.results]);
-    setPage(page + 1);
-    setLoading(false);
-  };
-
-  const searchMovies = async (query: string) => {
-    setLoading(true);
-    const response = await api.get("/search/movie", {
-      params: {
-        query,
-        'primary_release_date.gte': '2020-01-01', // Filmes a partir de 2020
-        'sort_by': 'popularity.desc', // Ordenar por popularidade
-        'vote_average.gte': 7, // Apenas filmes com classificação média de 7 ou superior
-      },
-    });
-
-    if (response.data.results.length === 0) {
-      setNoResult(true);
-      setLoading(false);
-      setSearchResultMovies([]);
-    } else {
-      setNoResult(false);
-      setSearchResultMovies(response.data.results);
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = (text: string) => {
-    setSearch(text);
-    if (text.length > 2) {
-      searchMovies(text);
-    } else {
-      setSearchResultMovies([]);
-    }
-  };
-
-  const navigation = useNavigation();
-
-  const renderMovieItem = ({ item }: { item: Movie }) => (
-    <CardMovies
-      data={item}
-      onPress={() => navigation.navigate("Details", { movieId: item.id })}
-    />
-  );
-
-  const movieData = search.length > 2 ? searchResultMovies : discoveryMovies;
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>O que você quer assistir hoje?</Text>
-
-        <View style={styles.containerInput}>
-          <TextInput
-            placeholderTextColor="#FFF"
-            placeholder="Buscar"
-            style={styles.input}
-            value={search}
-            onChangeText={handleSearch}
-          />
-          <MagnifyingGlass color="#FFF" size={25} weight="light" />
-        </View>
-
-        {noResult && (
-          <Text style={styles.noResult}>
-            Nenhum filme encontrado para "{search}"
-          </Text>
+  const renderSection = (title, data, showSeeAll) => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {showSeeAll && <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.seeAll}>Veja Tudo</Text></TouchableOpacity>}
+      </View>
+      <FlatList
+        data={data}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => navigation.navigate("Details", { movieId: item.id })}>
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+              style={styles.movieImage}
+            />
+          </TouchableOpacity>
         )}
-      </View>
-      <View style={styles.flatList}>
-        <FlatList
-          data={movieData}
-          numColumns={3}
-          renderItem={renderMovieItem}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{
-            padding: 35,
-            paddingBottom: 100,
-          }}
-          onEndReached={() => loadMoreData()}
-          onEndReachedThreshold={0.5}
-        />
-        {loading && <ActivityIndicator size={50} color="#0296e5" />}
-      </View>
+        keyExtractor={item => item.id.toString()}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      />
     </View>
   );
-}
+
+  return (
+    <ScrollView style={styles.container}>
+      <Logo style={styles}/>
+      <View style={styles.highlightSection}>
+        <Text style={styles.highlightTitle}>Tendência</Text>
+        <Animated.FlatList
+          data={trendingMovies.concat(topRatedMovies).slice(0, 10)}
+          renderItem={({ item, index }) => {
+            const inputRange = [
+              (index - 1) * ITEM_WIDTH,
+              index * ITEM_WIDTH,
+              (index + 1) * ITEM_WIDTH,
+            ];
+            const scale = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.8, 1, 0.8],
+              extrapolate: 'clamp',
+            });
+            const opacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.5, 1, 0.5],
+              extrapolate: 'clamp',
+            });
+            const showTitle = scrollX.interpolate({
+              inputRange,
+              outputRange: [0, 1, 0],
+              extrapolate: 'clamp',
+            });
+            return (
+              <TouchableOpacity onPress={() => navigation.navigate("Details", { movieId: item.id })}>
+                <Animated.View style={[styles.highlightImageContainer, { opacity, transform: [{ scale }] }]}>
+                  <Image 
+                    source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }} 
+                    style={styles.highlightImage} 
+                  />
+                  <Animated.Text style={[styles.movieTitle, { opacity: showTitle }]}>{item.title}</Animated.Text>
+                </Animated.View>
+              </TouchableOpacity>
+            );
+          }}
+          keyExtractor={item => item.id.toString()}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={ITEM_WIDTH}
+          decelerationRate="fast"
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: true }
+          )}
+          contentContainerStyle={{ paddingHorizontal: (width - ITEM_WIDTH) / 2 }}
+        />
+      </View>
+      {renderSection('Em Breve', upcomingMovies, true)}
+      {renderSection('Em Alta', topRatedMovies, true)}
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  highlightSection: {
+    marginVertical: 50,
+    height: 500,
+  },
+  highlightTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+  highlightImageContainer: {
+    width: ITEM_WIDTH,
+    marginHorizontal: SPACING,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  highlightImage: {
+    width: '100%',
+    height: 400,
+    borderRadius: 10,
+  },
+  movieTitle: {
+    marginTop: 10,
+    textAlign: 'center',
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  section: {
+    marginVertical: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  seeAll: {
+    fontSize: 14,
+    color: '#C3130F',
+  },
+  movieImage: {
+    width: 120,
+    height: 180,
+    borderRadius: 10,
+    marginHorizontal: 5,
+  },
+});
+
+export default MainHome;

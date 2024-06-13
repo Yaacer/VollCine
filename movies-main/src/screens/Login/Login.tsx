@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 const Login = ({ navigation }) => {
     const [email, setEmail] = useState("");
@@ -16,24 +17,43 @@ const Login = ({ navigation }) => {
                 const { email: savedEmail, password: savedPassword } = JSON.parse(userData);
 
                 if (savedEmail === email && savedPassword === password) {
-                    // Após o login bem-sucedido, armazenar indicador de login
                     await AsyncStorage.setItem('isLoggedIn', 'true');
                     console.log('Login bem-sucedido! Redirecionando para a tela Home.');
-                    navigation.navigate('MainHome'); // Correção aqui
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Login bem-sucedido!',
+                        text2: 'Redirecionando para a tela Home.',
+                    });
+                    navigation.replace('Tabs');
                 } else {
                     console.log('Email ou senha incorretos.');
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Erro no Login',
+                        text2: 'Email ou senha incorretos.',
+                    });
                 }
             } else {
                 console.log('Nenhum dado de usuário encontrado.');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Erro no Login',
+                    text2: 'Nenhum dado de usuário encontrado.',
+                });
             }
         } catch (error) {
             console.error('Erro ao obter dados do usuário:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Erro no Login',
+                text2: 'Erro ao obter dados do usuário.',
+            });
         }
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>Bem-vindo de volta!</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -51,7 +71,7 @@ const Login = ({ navigation }) => {
                 <Text style={styles.buttonText}>Entrar</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
-                <Text style={styles.signupLink}>Criar conta</Text>
+                <Text style={styles.signupLink}><span style={styles.naoTemCadastro}>Não tem uma conta?</span> Cadastre-se aqui!</Text>
             </TouchableOpacity>
         </View>
     );
@@ -62,39 +82,47 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#1E1E1E",
+        backgroundColor: "#222",
+        padding: 20,
     },
     title: {
         fontSize: 24,
         marginBottom: 20,
         color: "#fff",
+        fontWeight: "bold",
     },
     input: {
-        width: "80%",
+        width: "100%",
         borderWidth: 1,
         borderColor: "#ccc",
         borderRadius: 5,
-        padding: 10,
+        padding: 12,
         marginBottom: 10,
         backgroundColor: "#fff",
-        color: "#000",
     },
     button: {
-        backgroundColor: "#0296e5",
-        paddingVertical: 12,
+        backgroundColor: "#C3130F",
+        paddingVertical: 14,
         paddingHorizontal: 30,
         borderRadius: 5,
         marginTop: 20,
+        alignItems: "center",
     },
     buttonText: {
         color: "#fff",
         fontSize: 16,
+        fontWeight: "bold",
     },
     signupLink: {
         marginTop: 20,
         color: "#0296e5",
-        fontSize: 16,
+        fontSize: 14,
     },
+    naoTemCadastro: {
+        marginTop: 20,
+        color: "#FFF",
+        fontSize: 14,
+    }
 });
 
 export default Login;

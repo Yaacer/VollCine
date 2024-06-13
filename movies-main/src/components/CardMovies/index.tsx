@@ -1,5 +1,6 @@
-import { Image, Pressable } from "react-native";
-import { styles } from "./styles";
+import React from 'react';
+import { Image, Pressable } from 'react-native';
+import { styles } from './styles';
 
 interface Movie {
   id: number;

@@ -1,7 +1,8 @@
 import React, { useContext, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from "react-native";
-import { MovieContext } from "../../contexts/MoviesContext"; // Corrija o caminho conforme necessário
+import { MovieContext } from "../../contexts/MoviesContext";
 import { useNavigation } from "@react-navigation/native";
+import { Logo } from "../../components/Logo";
 
 export function MyList() {
   const { allFavoriteMovies, removeFavoriteMovies } = useContext(MovieContext);
@@ -9,6 +10,7 @@ export function MyList() {
 
   return (
     <View style={styles.container}>
+      <Logo style={styles}/>
       <Text style={styles.title}>Meus Filmes Favoritos</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {allFavoriteMovies.map((movie) => (
@@ -35,14 +37,14 @@ export function MyList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1E1E1E",
+    backgroundColor: "#000",
   },
   title: {
     color: "#fff",
     fontSize: 24,
     fontWeight: "700",
     textAlign: "center",
-    marginVertical: 20,
+    marginVertical: 15,
   },
   scrollContainer: {
     paddingBottom: 20,
