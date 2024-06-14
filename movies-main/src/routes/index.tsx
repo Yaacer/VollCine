@@ -7,6 +7,7 @@ import Cadastro from "../screens/Cadastro/Cadastro";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SelecionarPlano from "../components/SelecionarPlano";
 import PagamentoFicticio from "../components/Pagamento";
+import ForgotPassword from "../screens/EsqueceuASenha";
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +39,11 @@ export function Routes() {
           <Stack.Screen
             name="Login"
             component={Login}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPassword}
             options={{ headerShown: false }}
           />
           <Stack.Screen

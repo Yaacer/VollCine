@@ -74,7 +74,7 @@ const ProfileScreen = ({ navigation }) => {
                 type: 'error',
                 text1: 'Erro',
                 text2: 'Nenhuma mensagem foi enviada',
-                style: { zIndex: 1000 }, 
+                style: { zIndex: 1000 },
             });
         } else {
             console.log('Assunto:', contactSubject);
@@ -153,7 +153,7 @@ const ProfileScreen = ({ navigation }) => {
                                 <Text style={{ fontWeight: 'bold' }}>6. Alterações na Política:</Text> Podemos atualizar nossa política de privacidade periodicamente. Recomendamos que você revise esta página regularmente para se manter informado sobre como protegemos suas informações.
                             </Text>
                             <Text style={styles.modalText}>
-                                <Text style={{ fontWeight: 'bold' }}>7. Contato:</Text> Se você tiver dúvidas ou preocupações sobre nossa política de privacidade e segurança, entre em contato com nosso suporte ao cliente através do email suporte@vollcine.com.
+                                <Text style={{ fontWeight: 'bold' }}>7. Contato:</Text> Se você tiver dúvidas ou preocupações sobre nossa política de privacidade e segurança, entre em contato com nosso suporte ao cliente através do email suporte@vollcine.com
                             </Text>
                             <Text style={styles.modalText}>
                                 Agradecemos por escolher o VollCine. Nosso compromisso é proporcionar a melhor experiência de entretenimento com a máxima segurança e respeito à sua privacidade.
@@ -214,7 +214,7 @@ const absoluteLogoStyles = StyleSheet.create({
 const helpModalStyles = StyleSheet.create({
     helpModalContent: {
         width: '90%',
-        height: '80%', 
+        height: '80%',
         alignSelf: 'center',
         justifyContent: 'center',
         padding: 20,

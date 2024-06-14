@@ -18,7 +18,7 @@ const Cadastro = ({ navigation }) => {
     };
 
     const [passwordError, setPasswordError] = useState(""); // Estado para armazenar o erro da senha
-    const [showPassword, setShowPassword] = useState(false); // Estado para controlar a visibilidade da senha
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleCadastro = async () => {
         if (!nome || !email || !cpf || !password || !confirmPassword) {
@@ -115,7 +115,7 @@ const Cadastro = ({ navigation }) => {
                     style={styles.eyeIcon}
                     onPress={() => setShowPassword(!showPassword)}
                 >
-                    {showPassword ? <Eye size={24} color="#888" /> : <EyeClosed size={24} color="#888" />}
+                    <Eye size={24} color="#888" />
                 </TouchableOpacity>
             </View>
             {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
@@ -124,7 +124,7 @@ const Cadastro = ({ navigation }) => {
                 placeholder="Confirmar Senha"
                 onChangeText={(text) => setConfirmPassword(text)}
                 value={confirmPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword} // Mesmo estado de visibilidade da senha
             />
             <TextInput
                 style={styles.input}

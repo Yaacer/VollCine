@@ -73,6 +73,9 @@ const Login = ({ navigation }) => {
             <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
                 <Text style={styles.signupLink}><span style={styles.naoTemCadastro}>Não tem uma conta?</span> Cadastre-se aqui!</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+                <Text style={styles.forgotPasswordLink}>Esqueci a senha</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -121,6 +124,11 @@ const styles = StyleSheet.create({
     naoTemCadastro: {
         marginTop: 20,
         color: "#FFF",
+        fontSize: 14,
+    },
+    forgotPasswordLink: {
+        marginTop: 10,
+        color: "#0296e5",
         fontSize: 14,
     }
 });

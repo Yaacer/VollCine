@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
     color: "#FFF",
   },
   containerInput: {
-    backgroundColor: "#67686D",
+    backgroundColor: "#2C2C2E",
     height: 42,
     padding: 10,
     borderRadius: 16,
@@ -42,11 +42,22 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     flexDirection: "row",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   input: {
     color: "#FFF",
-    width: "80%",
+    width: "85%",
     paddingLeft: 15,
+    paddingVertical: 0, // Remove padding vertical para centralizar o texto
+    height: "150%",
+    shadowColor: "#2C2C2E"
   },
   logoContainer: {
     alignItems: 'center',

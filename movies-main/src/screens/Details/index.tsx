@@ -24,7 +24,7 @@ type MovieDetails = {
       character: string;
     }[];
   };
-  genres: Genre[]; // Adicionando os gêneros
+  genres: Genre[]; 
 };
 
 type SimilarMovie = {
